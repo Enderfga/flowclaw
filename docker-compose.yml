@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  council:
+    build: .
+    ports:
+      - "3001:3001"
+    volumes:
+      - council-data:/app/data
+    environment:
+      PORT: 3001
+      # Uncomment and set your API keys:
+      # OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      # GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      # COUNCIL_MOCK: true  # Use mock providers (no API keys needed)
+    restart: unless-stopped
+
+volumes:
+  council-data:
+    driver: local

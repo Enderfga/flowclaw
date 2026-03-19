@@ -1,0 +1,21 @@
+{
+  "name": "Parallel Translation",
+  "description": "Translate text to multiple languages in parallel, then merge results",
+  "nodes": [
+    { "id": "input", "type": "input", "position": { "x": 400, "y": 0 }, "config": { "name": "Text Input" } },
+    { "id": "translate-fr", "type": "agent", "position": { "x": 100, "y": 200 }, "config": { "name": "French Translator", "systemPrompt": "Translate the given text to French. Output only the translation.", "model": "gemini-3.1-flash" } },
+    { "id": "translate-es", "type": "agent", "position": { "x": 400, "y": 200 }, "config": { "name": "Spanish Translator", "systemPrompt": "Translate the given text to Spanish. Output only the translation.", "model": "gemini-3.1-flash" } },
+    { "id": "translate-ja", "type": "agent", "position": { "x": 700, "y": 200 }, "config": { "name": "Japanese Translator", "systemPrompt": "Translate the given text to Japanese. Output only the translation.", "model": "gemini-3.1-flash" } },
+    { "id": "merge", "type": "merge", "position": { "x": 400, "y": 400 }, "config": { "name": "Merge Translations", "inputTemplate": "## Translations\n\n**French:** {{translate-fr.output}}\n\n**Spanish:** {{translate-es.output}}\n\n**Japanese:** {{translate-ja.output}}" } },
+    { "id": "output", "type": "output", "position": { "x": 400, "y": 600 }, "config": { "name": "Result" } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "input", "target": "translate-fr" },
+    { "id": "e2", "source": "input", "target": "translate-es" },
+    { "id": "e3", "source": "input", "target": "translate-ja" },
+    { "id": "e4", "source": "translate-fr", "target": "merge" },
+    { "id": "e5", "source": "translate-es", "target": "merge" },
+    { "id": "e6", "source": "translate-ja", "target": "merge" },
+    { "id": "e7", "source": "merge", "target": "output" }
+  ]
+}

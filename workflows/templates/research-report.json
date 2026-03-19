@@ -1,0 +1,25 @@
+{
+  "name": "Research Report Generator",
+  "description": "Research a topic from multiple angles, synthesize findings, generate a structured report",
+  "nodes": [
+    { "id": "input", "type": "input", "position": { "x": 400, "y": 0 }, "config": { "name": "Research Topic" } },
+    { "id": "planner", "type": "agent", "position": { "x": 400, "y": 150 }, "config": { "name": "Research Planner", "systemPrompt": "Given a research topic, identify 3 key angles to investigate. Output a JSON: {angles: [{title: string, questions: string[]}]}.", "model": "gemini-3.1-flash", "temperature": 0.3 } },
+    { "id": "researcher-1", "type": "agent", "position": { "x": 100, "y": 350 }, "config": { "name": "Researcher A", "systemPrompt": "You are a thorough researcher. Investigate the first angle of the research plan. Provide detailed findings with evidence.", "model": "gemini-3.1-flash", "inputTemplate": "Topic: {{input.output}}\nPlan: {{planner.output}}\n\nFocus on the FIRST angle listed in the plan." } },
+    { "id": "researcher-2", "type": "agent", "position": { "x": 400, "y": 350 }, "config": { "name": "Researcher B", "systemPrompt": "You are a thorough researcher. Investigate the second angle of the research plan. Provide detailed findings with evidence.", "model": "gemini-3.1-flash", "inputTemplate": "Topic: {{input.output}}\nPlan: {{planner.output}}\n\nFocus on the SECOND angle listed in the plan." } },
+    { "id": "researcher-3", "type": "agent", "position": { "x": 700, "y": 350 }, "config": { "name": "Researcher C", "systemPrompt": "You are a thorough researcher. Investigate the third angle of the research plan. Provide detailed findings with evidence.", "model": "gemini-3.1-flash", "inputTemplate": "Topic: {{input.output}}\nPlan: {{planner.output}}\n\nFocus on the THIRD angle listed in the plan." } },
+    { "id": "merge", "type": "merge", "position": { "x": 400, "y": 550 }, "config": { "name": "Combine Findings", "inputTemplate": "## Research Findings\n\n### Angle 1\n{{researcher-1.output}}\n\n### Angle 2\n{{researcher-2.output}}\n\n### Angle 3\n{{researcher-3.output}}" } },
+    { "id": "writer", "type": "agent", "position": { "x": 400, "y": 700 }, "config": { "name": "Report Writer", "systemPrompt": "Synthesize all research findings into a well-structured report with: Executive Summary, Key Findings (organized by theme), Analysis, and Recommendations. Use clear headings and be thorough.", "model": "gemini-3.1-flash", "temperature": 0.4 } },
+    { "id": "output", "type": "output", "position": { "x": 400, "y": 900 }, "config": { "name": "Final Report" } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "input", "target": "planner" },
+    { "id": "e2", "source": "planner", "target": "researcher-1" },
+    { "id": "e3", "source": "planner", "target": "researcher-2" },
+    { "id": "e4", "source": "planner", "target": "researcher-3" },
+    { "id": "e5", "source": "researcher-1", "target": "merge" },
+    { "id": "e6", "source": "researcher-2", "target": "merge" },
+    { "id": "e7", "source": "researcher-3", "target": "merge" },
+    { "id": "e8", "source": "merge", "target": "writer" },
+    { "id": "e9", "source": "writer", "target": "output" }
+  ]
+}

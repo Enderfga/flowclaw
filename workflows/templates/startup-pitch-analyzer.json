@@ -1,0 +1,180 @@
+{
+  "name": "🚀 Startup Pitch Analyzer (Full DAG Demo)",
+  "description": "Three Minds 只能轮流发言。这个 DAG 展示了真正的并行执行、条件分支、人工审核断点、merge 汇聚、串行深度分析 —— 所有 agent 节点同时工作，结果汇总后走不同路径。",
+  "nodes": [
+    {
+      "id": "input",
+      "type": "input",
+      "position": { "x": 450, "y": 0 },
+      "config": {
+        "name": "📝 Startup Pitch"
+      }
+    },
+
+    {
+      "id": "market",
+      "type": "agent",
+      "position": { "x": 0, "y": 200 },
+      "config": {
+        "name": "🔍 Market Analyst",
+        "systemPrompt": "你是顶级市场分析师。分析这个创业想法的：\n1. TAM/SAM/SOM 市场规模\n2. 竞争格局（列出3个主要竞品）\n3. 市场时机\n4. 增长潜力\n\n输出 JSON：{\"score\": 0-10, \"tam_b\": 数字(十亿美元), \"competitors\": [...], \"timing\": \"early\"|\"optimal\"|\"late\", \"summary\": \"一段话总结\"}",
+        "model": "gemini-3.1-flash",
+        "temperature": 0.3,
+        "maxTokens": 1500
+      }
+    },
+    {
+      "id": "tech",
+      "type": "agent",
+      "position": { "x": 300, "y": 200 },
+      "config": {
+        "name": "⚙️ CTO",
+        "systemPrompt": "你是创业公司 CTO。评估技术可行性：\n1. 技术复杂度\n2. MVP 开发周期\n3. 团队规模需求\n4. 技术壁垒\n\n输出 JSON：{\"score\": 0-10, \"complexity\": \"low\"|\"medium\"|\"high\", \"mvp_weeks\": 数字, \"team\": 数字, \"moat\": \"一句话\"}",
+        "model": "gemini-3.1-flash",
+        "temperature": 0.2,
+        "maxTokens": 1500
+      }
+    },
+    {
+      "id": "finance",
+      "type": "agent",
+      "position": { "x": 600, "y": 200 },
+      "config": {
+        "name": "💰 CFO",
+        "systemPrompt": "你是创业财务顾问。做财务预测：\n1. 收入模型\n2. 月烧钱率\n3. 融资需求\n4. 盈亏平衡时间\n\n输出 JSON：{\"score\": 0-10, \"model\": \"SaaS\"|\"marketplace\"|\"ads\"|\"other\", \"burn_k\": 月烧钱(千美元), \"raise_m\": 融资额(百万美元), \"breakeven_months\": 数字}",
+        "model": "gemini-3.1-flash",
+        "temperature": 0.3,
+        "maxTokens": 1500
+      }
+    },
+    {
+      "id": "risk",
+      "type": "agent",
+      "position": { "x": 900, "y": 200 },
+      "config": {
+        "name": "⚠️ Risk Officer",
+        "systemPrompt": "你是风险评估专家。从三个维度找致命风险：\n1. 监管/法律风险\n2. 执行风险\n3. 市场风险\n\n对每个风险给 severity (1-5) 和 mitigation 建议。\n输出 JSON：{\"score\": 0-10, \"risks\": [{\"type\": string, \"severity\": 1-5, \"desc\": string, \"mitigation\": string}], \"killshot\": \"最大隐患一句话\"}",
+        "model": "gemini-3.1-flash",
+        "temperature": 0.4,
+        "maxTokens": 1500
+      }
+    },
+
+    {
+      "id": "merge-scores",
+      "type": "merge",
+      "position": { "x": 450, "y": 430 },
+      "config": {
+        "name": "📊 Merge 4-Way Analysis",
+        "inputTemplate": "=== PARALLEL ANALYSIS RESULTS ===\n\n🔍 Market: {{market.output}}\n\n⚙️ Tech: {{tech.output}}\n\n💰 Finance: {{finance.output}}\n\n⚠️ Risk: {{risk.output}}"
+      }
+    },
+
+    {
+      "id": "scorer",
+      "type": "agent",
+      "position": { "x": 450, "y": 600 },
+      "config": {
+        "name": "🧮 Scoring Engine",
+        "systemPrompt": "你是决策引擎。根据四维分析结果，计算加权总分：\n- 市场 30%\n- 技术 25%\n- 财务 25%\n- 风险 20%（风险分数越高=风险越低=越好）\n\n输出 JSON：{\"weighted_score\": 0-10(保留1位小数), \"verdict\": \"STRONG_YES\"|\"YES\"|\"MAYBE\"|\"NO\"|\"STRONG_NO\", \"one_liner\": \"一句话结论\"}",
+        "model": "gemini-3.1-flash",
+        "temperature": 0.1,
+        "maxTokens": 800
+      }
+    },
+
+    {
+      "id": "gate",
+      "type": "condition",
+      "position": { "x": 450, "y": 780 },
+      "config": {
+        "name": "🚦 投资门槛 (≥6分通过)",
+        "conditionExpr": "true"
+      }
+    },
+
+    {
+      "id": "strategy",
+      "type": "agent",
+      "position": { "x": 150, "y": 960 },
+      "config": {
+        "name": "🎯 GTM Strategist",
+        "systemPrompt": "创业项目通过了评审！设计 Go-to-Market 战略：\n1. 目标用户画像\n2. 获客渠道（前3个月）\n3. 定价策略\n4. 里程碑规划（3/6/12个月）\n5. 关键指标 KPIs\n\n要具体、可执行。",
+        "model": "gemini-3.1-flash",
+        "temperature": 0.5,
+        "maxTokens": 2500,
+        "inputTemplate": "综合评分：{{scorer.output}}\n\n原始分析：{{merge-scores.output}}"
+      }
+    },
+    {
+      "id": "rejection",
+      "type": "agent",
+      "position": { "x": 750, "y": 960 },
+      "config": {
+        "name": "💀 Kill Report",
+        "systemPrompt": "这个项目没过评审。写一份简短的 kill report：\n1. 三个最大问题\n2. 如果非要做，需要改什么\n3. 有没有 pivot 方向\n\n直接、不废话。",
+        "model": "gemini-3.1-flash",
+        "temperature": 0.4,
+        "maxTokens": 1200,
+        "inputTemplate": "综合评分：{{scorer.output}}\n\n原始分析：{{merge-scores.output}}"
+      }
+    },
+
+    {
+      "id": "human",
+      "type": "human",
+      "position": { "x": 150, "y": 1160 },
+      "config": {
+        "name": "👤 Founder Review",
+        "inputTemplate": "AI 给出了 GTM 战略，请审核并提供反馈：\n\n{{strategy.output}}"
+      }
+    },
+
+    {
+      "id": "pitch-deck",
+      "type": "agent",
+      "position": { "x": 150, "y": 1350 },
+      "config": {
+        "name": "🎨 Pitch Deck Writer",
+        "systemPrompt": "根据所有分析 + 创始人反馈，写一份 10 页 pitch deck 大纲。每页包含：标题、核心信息（1-2句）、数据支撑。\n\n要投资人看了会兴奋的那种。",
+        "model": "gemini-3.1-flash",
+        "temperature": 0.7,
+        "maxTokens": 3000,
+        "inputTemplate": "GTM Strategy: {{strategy.output}}\n\nFounder Feedback: {{human.output}}\n\nMarket Data: {{market.output}}\n\nFinancials: {{finance.output}}"
+      }
+    },
+
+    {
+      "id": "output",
+      "type": "output",
+      "position": { "x": 450, "y": 1550 },
+      "config": {
+        "name": "📋 Final Report",
+        "inputTemplate": "# 🚀 Startup Analysis Report\n\n## Verdict\n{{scorer.output}}\n\n---\n\n## 4-Way Parallel Analysis\n{{merge-scores.output}}\n\n---\n\n## GTM Strategy\n{{strategy.output}}\n\n## Pitch Deck\n{{pitch-deck.output}}"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-in-market", "source": "input", "target": "market" },
+    { "id": "e-in-tech", "source": "input", "target": "tech" },
+    { "id": "e-in-finance", "source": "input", "target": "finance" },
+    { "id": "e-in-risk", "source": "input", "target": "risk" },
+
+    { "id": "e-market-merge", "source": "market", "target": "merge-scores" },
+    { "id": "e-tech-merge", "source": "tech", "target": "merge-scores" },
+    { "id": "e-finance-merge", "source": "finance", "target": "merge-scores" },
+    { "id": "e-risk-merge", "source": "risk", "target": "merge-scores" },
+
+    { "id": "e-merge-scorer", "source": "merge-scores", "target": "scorer" },
+
+    { "id": "e-scorer-gate", "source": "scorer", "target": "gate" },
+
+    { "id": "e-gate-yes", "source": "gate", "target": "strategy", "sourceHandle": "true", "condition": "true" },
+    { "id": "e-gate-no", "source": "gate", "target": "rejection", "sourceHandle": "false", "condition": "false" },
+
+    { "id": "e-strategy-human", "source": "strategy", "target": "human" },
+    { "id": "e-human-deck", "source": "human", "target": "pitch-deck" },
+    { "id": "e-deck-out", "source": "pitch-deck", "target": "output" },
+    { "id": "e-reject-out", "source": "rejection", "target": "output" }
+  ]
+}

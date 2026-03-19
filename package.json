@@ -1,0 +1,33 @@
+{
+  "name": "flowclaw",
+  "private": true,
+  "version": "1.0.0",
+  "description": "ComfyUI-style visual DAG orchestration for multi-AI-agent workflows. Design, run, and monitor agent pipelines with drag-and-drop or AI-powered auto-generation.",
+  "scripts": {
+    "dev:web": "pnpm --filter @council/web dev",
+    "dev:server": "pnpm --filter @council/server dev",
+    "build": "pnpm --filter @council/core build && pnpm -r build",
+    "build:core": "pnpm --filter @council/core build",
+    "test": "pnpm --filter @council/core test && pnpm --filter @council/server test",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "author": "Enderfga",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Enderfga/flowclaw.git"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "orchestration",
+    "dag",
+    "workflow",
+    "multi-agent",
+    "llm",
+    "comfyui"
+  ]
+}

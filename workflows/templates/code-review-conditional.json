@@ -1,0 +1,28 @@
+{
+  "name": "Code Review with Conditional Deploy",
+  "description": "Review code with multiple agents, check quality, conditionally deploy or request fixes",
+  "nodes": [
+    { "id": "input", "type": "input", "position": { "x": 400, "y": 0 }, "config": { "name": "Code Input" } },
+    { "id": "security-review", "type": "agent", "position": { "x": 100, "y": 200 }, "config": { "name": "Security Reviewer", "systemPrompt": "Review the code for security vulnerabilities. Output a JSON with {score: 0-10, issues: [...], safe: true/false}.", "model": "gemini-3.1-flash" } },
+    { "id": "quality-review", "type": "agent", "position": { "x": 400, "y": 200 }, "config": { "name": "Quality Reviewer", "systemPrompt": "Review the code for quality, patterns, and best practices. Output a JSON with {score: 0-10, suggestions: [...]}.", "model": "gemini-3.1-flash" } },
+    { "id": "perf-review", "type": "agent", "position": { "x": 700, "y": 200 }, "config": { "name": "Performance Reviewer", "systemPrompt": "Review the code for performance issues. Output a JSON with {score: 0-10, bottlenecks: [...]}.", "model": "gemini-3.1-flash" } },
+    { "id": "merge-reviews", "type": "merge", "position": { "x": 400, "y": 400 }, "config": { "name": "Merge Reviews", "inputTemplate": "Security: {{security-review.output}}\nQuality: {{quality-review.output}}\nPerformance: {{perf-review.output}}" } },
+    { "id": "gate", "type": "condition", "position": { "x": 400, "y": 550 }, "config": { "name": "Quality Gate", "conditionExpr": "safe === 'true'" } },
+    { "id": "deploy", "type": "tool", "position": { "x": 200, "y": 700 }, "config": { "name": "Deploy", "tools": [{ "name": "deploy", "type": "shell", "config": { "command": "echo 'Deploying...'" } }] } },
+    { "id": "fix-request", "type": "agent", "position": { "x": 600, "y": 700 }, "config": { "name": "Fix Request Generator", "systemPrompt": "Based on the review feedback, generate a concise list of required fixes before deployment can proceed.", "model": "gemini-3.1-flash" } },
+    { "id": "output", "type": "output", "position": { "x": 400, "y": 900 }, "config": { "name": "Result" } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "input", "target": "security-review" },
+    { "id": "e2", "source": "input", "target": "quality-review" },
+    { "id": "e3", "source": "input", "target": "perf-review" },
+    { "id": "e4", "source": "security-review", "target": "merge-reviews" },
+    { "id": "e5", "source": "quality-review", "target": "merge-reviews" },
+    { "id": "e6", "source": "perf-review", "target": "merge-reviews" },
+    { "id": "e7", "source": "merge-reviews", "target": "gate" },
+    { "id": "e8", "source": "gate", "target": "deploy", "condition": "true" },
+    { "id": "e9", "source": "gate", "target": "fix-request", "condition": "false" },
+    { "id": "e10", "source": "deploy", "target": "output" },
+    { "id": "e11", "source": "fix-request", "target": "output" }
+  ]
+}
